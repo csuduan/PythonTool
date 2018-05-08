@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @author: duanqing
+# @created on: 2018/4/3 15:53
+# @desc  :  同步缓存到DB
+
+import pandas as pd
+import sqlalchemy
+import time
+import os
+import sqlalchemy
+import sqlite3
+import pymssql
+
+path='D:\SVN\svn-Aliyun\缓存'
+#startDate='20180419'
+startDate=time.strftime('%Y%m%d',time.localtime(time.time()))
+tms=time.strftime('%Y%m%d %H:%M:%S',time.localtime(time.time()))
+
+encoding='cp936'
+engine =sqlalchemy.create_engine('mssql+pymssql://quant:quant@192.168.1.10:1433/product?charset=cp936')
+engineU =sqlalchemy.create_engine('mssql+pymssql://quant:quant@192.168.1.10:1433/product')
+#connDb = pymssql.connect("192.168.1.10","quant","quant","product",charset='cp936')
+
+
+pd.set_option('display.max_rows',500)
+pd.set_option('display.max_columns',500)
+pd.set_option('display.width',1000)
+
+
+products=pd.read_sql("select * from productNameData",engine)
+
+
+
+
+
+
+
+def saveSettle(df,account,productId):
+    print('-->处理settle表')
+    engineU.execute(f"delete from FuturesSettleData where TradingDay>='{startDate}' and account='{account}' ")
+    if len(df)==0:
+        return
+
+    df['Account']=account
+    df['ProductId'] = int(productId)
+    df['KType'] = df['StrategyId'].str.split('-',expand=True)[2]
+    df['OpTms'] = tms
+    df=df.drop(['Id'], axis=1)
+
+    df.to_sql('FuturesSettleData',engineU,index=False,if_exists='append')
+
+def saveMarketValue(df,account,productId):
+    print('-->处理MarketValue表')
+    engineU.execute(f"delete from FuturesMarketValue where TradingDay>='{startDate}' and accountId='{account}' ")
+    if len(df)==0:
+        return
+
+    df['AccountId'] = account
+    df['ProductId'] = int(productId)
+    df['OpDate'] = tms
+    df.rename(columns={'Strategy': 'StrategyType'}, inplace=True)
+    df = df.drop(['Id','OpTms'], axis=1)
+
+    df.to_sql('FuturesMarketValue', engineU, index=False, if_exists='append')
+
+
+
+
+if __name__ == "__main__":
+    print('开始更新svn')
+    os.system('svn up ' +path)
+
+
+
+
+    for account in os.listdir(path):
+        print(f'开始装载 {account} {startDate}起的缓存数据')
+        # if account != '宽投优月-大华':
+        #     continue
+        subPath = path + '\\' + account
+        product = products[products.ProductName == account]
+        if len(product) == 0:
+            print(f'账户[{account}]找不到对应product信息')
+            continue
+        productId = product.iloc[0, 1]
+
+        # 连接缓存
+        cachefile = subPath + '/cache.db'
+        conn = sqlite3.connect(cachefile)
+
+        # 处理结算信息
+        df = pd.read_sql(f"select * from settle where tradingDay>='{startDate}'", con=conn)
+        saveSettle(df, account, productId)
+
+        # 处理市值信息
+        df = pd.read_sql(f"select * from marketValue where tradingDay>='{startDate}'", con=conn)
+        saveMarketValue(df, account, productId)
+
+        conn.close()
+
+    print("装载完毕")
+
+
+
+
+
+

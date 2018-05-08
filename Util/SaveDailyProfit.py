@@ -4,6 +4,7 @@ import sqlalchemy
 import time
 import os
 import sqlalchemy
+# author : duanqing
 
 #保存每日收益到数据库
 
@@ -41,6 +42,7 @@ def parseFile(filePath,account,productId):
 
         if  datas[4] < startDate:
             continue
+
 
         dic=dict()
 

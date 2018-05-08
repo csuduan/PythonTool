@@ -1,18 +1,32 @@
-#! coding: cp936
-from pylab import *
+import numpy as np
+import matplotlib.pyplot as plt
 
-# make a square figure and axes
-figure(1, figsize=(6,6))
-ax = axes([0.1, 0.1, 0.8, 0.8])
 
-fracs = [45, 30, 25]             #每一块占得比例，总和为100
-explode=(0, 0, 0.08)             #离开整体的距离，看效果
-labels = 'Hogs', 'Dogs', 'Logs'  #对应每一块的标志
+N = 50
+x = np.random.rand(N)
+y = np.random.rand(N)
+colors = np.random.rand(N)
+area = np.pi * (15 * np.random.rand(N))**2  # 0 to 15 point radii
 
-pie(fracs, explode=explode, labels=labels,
-    autopct='%1.1f%%', shadow=True, startangle=90, colors = ("g", "r", "y"))
-# startangle是开始的角度，默认为0，从这里开始按逆时针方向依次展开
+plt.scatter(x, y, s=area, c=colors, alpha=0.5)
+plt.show()
 
-title('Raining Hogs and Dogs')   #标题
+X = np.linspace(-np.pi, np.pi, 256,endpoint=True)
+C,S = np.cos(X), np.sin(X)
 
-show()
+
+plt.plot(X, C, color="blue", linewidth=2.5, linestyle="-")
+plt.plot(X, S, color="red", linewidth=2.5, linestyle="-")
+
+
+plt.xlim(X.min()*1.1, X.max()*1.1)
+plt.xticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi],
+[r'$-\pi$', r'$-\pi/2$', r'$0$', r'$+\pi/2$', r'$+\pi$'])
+
+plt.ylim(C.min()*1.1,C.max()*1.1)
+plt.yticks([-1, 0, +1],
+[r'$-1$', r'$0$', r'$+1$'])
+
+plt.show()
+
+pass
