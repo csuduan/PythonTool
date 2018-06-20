@@ -1,0 +1,21 @@
+{
+  "subscribe":[
+    {
+      "topic":"topic1",
+      "users":"duanqing"
+
+    },
+    {
+      "topic":"topic2",
+      "chat":"pyg001"
+
+    },
+    {
+      "topic":"topic3",
+      "chat":"pyg001",
+      "users":"duanqing|zhenglong"
+
+    }
+  ]
+
+}
